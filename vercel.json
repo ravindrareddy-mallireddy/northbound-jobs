@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://buddy-yoga-glen-sullivan.trycloudflare.com/api/$1"
+    }
+  ]
+}
