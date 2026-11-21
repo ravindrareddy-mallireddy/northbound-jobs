@@ -1,0 +1,12 @@
+node_modules/
+dist/
+dist-single/
+__pycache__/
+.venv/
+jobs.db
+uvicorn.log
+tunnel.log
+*.png
+.adzuna_key
+frontend/src/jobs.json
+package-lock.json
