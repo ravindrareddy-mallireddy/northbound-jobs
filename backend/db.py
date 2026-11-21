@@ -96,13 +96,18 @@ def upsert(source: str, ext_id: str, job: dict) -> bool:
         con.close()
 
 
+GRACE_DAYS = 7
+
+
 def expire_missing(source: str, live_ids: list[str]):
-    """Mark a source's listings inactive when they were not in the latest feed."""
+    """Mark a source's listings inactive only once they have been off its
+    feed for GRACE_DAYS; fresh listings that merely fell off the page stay."""
     con = connect()
     marks = ",".join("?" for _ in live_ids)
+    cutoff = int(time.time()) - GRACE_DAYS * 86400
     con.execute(
-        f"UPDATE jobs SET active=0 WHERE source=? AND ext_id NOT IN ({marks})",
-        [source, *live_ids],
+        f"UPDATE jobs SET active=0 WHERE source=? AND last_seen < ? AND ext_id NOT IN ({marks})",
+        [source, cutoff, *live_ids],
     )
     con.commit()
     con.close()
