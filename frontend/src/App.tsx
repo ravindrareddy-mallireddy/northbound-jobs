@@ -24,19 +24,22 @@ export default function App() {
 
   useEffect(() => {
     let alive = true;
-    fetchJobs(filters, 1)
-      .then((res) => {
-        if (!alive) return;
-        setJobs(res.jobs);
-        setCount(res.count);
-        setError(null);
-      })
-      .catch((e: unknown) => {
-        if (!alive) return;
-        setError(e instanceof Error ? e.message : "Could not reach the jobs API");
-      });
+    const timer = setTimeout(() => {
+      fetchJobs(filters, 1)
+        .then((res) => {
+          if (!alive) return;
+          setJobs(res.jobs);
+          setCount(res.count);
+          setError(null);
+        })
+        .catch((e: unknown) => {
+          if (!alive) return;
+          setError(e instanceof Error ? e.message : "Could not reach the jobs API");
+        });
+    }, 300);
     return () => {
       alive = false;
+      clearTimeout(timer);
     };
   }, [filters]);
 
@@ -154,7 +157,7 @@ export default function App() {
           </div>
 
           <div className="meta-row">
-            <p className="count">
+            <p className="count" aria-live="polite">
               <strong>{count} role{count === 1 ? "" : "s"}</strong> open
             </p>
             {active && (
@@ -172,7 +175,7 @@ export default function App() {
 
           <ul className="jobs">
             {jobs.map((job, i) => (
-              <li key={job.title + job.co} className={openIndex === i ? "job open" : "job"}>
+              <li key={job.id ?? `${job.source}:${job.title}:${job.co}`} className={openIndex === i ? "job open" : "job"}>
                 <button
                   className="job-head"
                   aria-expanded={openIndex === i}
