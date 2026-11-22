@@ -78,7 +78,7 @@ header.site{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--
 .nav-links a.post{color:var(--paper);background:var(--accent);padding:9px 18px;border-radius:var(--radius);transition:background .2s}
 .nav-links a.post:hover{background:var(--accent-deep);background-size:0}
 @media(max-width:720px){.nav-links a:not(.post){display:none}}
-.theme{font:inherit;font-size:13px;font-weight:500;color:var(--muted);background:transparent;border:1px solid var(--rule);padding:7px 14px;border-radius:999px;cursor:pointer;transition:all .18s;min-height:38px}
+.theme{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:13px;font-weight:500;color:var(--muted);background:transparent;border:1px solid var(--rule);padding:7px 14px;border-radius:999px;cursor:pointer;transition:all .18s;min-height:38px}
 .theme:hover{border-color:var(--accent);color:var(--ink)}
 
 .hero{padding:88px 0 56px;border-bottom:1px solid var(--rule)}
@@ -90,7 +90,7 @@ header.site{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--
 .searchbar input{flex:1;font:inherit;font-size:16px;padding:14px 18px;border:1px solid var(--rule);border-radius:var(--radius);background:var(--input-bg);color:var(--ink);transition:border-color .2s}
 .searchbar input::placeholder{color:var(--muted)}
 .searchbar input:focus{outline:none;border-color:var(--accent)}
-.searchbar button{font:inherit;font-size:16px;font-weight:600;padding:14px 26px;border:none;border-radius:var(--radius);background:var(--accent);color:var(--on-accent);cursor:pointer;transition:background .2s,transform .1s}
+.searchbar button{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:inherit;font-size:16px;font-weight:600;padding:14px 26px;border:none;border-radius:var(--radius);background:var(--accent);color:var(--on-accent);cursor:pointer;transition:background .2s,transform .1s}
 .searchbar button:hover{background:var(--accent-deep)}
 .searchbar button:active{transform:translateY(1px)}
 @media(max-width:560px){.searchbar{flex-direction:column}}
@@ -112,7 +112,9 @@ header.site{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--
 ul.jobs{list-style:none}
 .job{border-top:1px solid var(--rule)}
 .job:last-child{border-bottom:1px solid var(--rule)}
-.job-head{width:100%;display:grid;grid-template-columns:1fr auto;gap:4px 28px;align-items:baseline;padding:24px 10px;border:none;background:none;text-align:left;cursor:pointer;font:inherit;color:inherit;transition:background .18s}
+.job-head{width:100%;display:grid;grid-template-columns:1fr auto;gap:4px 28px;align-items:baseline;padding:24px 44px 24px 10px;border:none;background:none;text-align:left;cursor:pointer;font:inherit;color:inherit;transition:background .18s;position:relative}
+.job-chev{position:absolute;right:12px;top:26px;color:var(--muted);transition:transform .25s cubic-bezier(.2,.7,.2,1)}
+.job.open .job-chev{transform:rotate(180deg)}
 .job-head:hover,.job.open .job-head{background:color-mix(in srgb,var(--surface) 60%,transparent)}
 .job-head:focus-visible{outline-offset:-2px}
 .job-title{font-family:var(--font-display);font-size:22px;font-weight:500;letter-spacing:-.01em}
@@ -124,7 +126,7 @@ ul.jobs{list-style:none}
 .job-detail p{color:var(--body-text);margin-bottom:14px}
 .job-detail .tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
 .tag{font-size:13px;color:var(--accent-deep);border:1px solid color-mix(in srgb,var(--accent) 35%,var(--rule));padding:4px 11px;border-radius:999px;background:color-mix(in srgb,var(--accent) 7%,transparent)}
-.apply{display:inline-block;font-size:15px;font-weight:600;text-decoration:none;color:var(--on-accent);background:var(--accent);padding:11px 22px;border-radius:var(--radius);transition:background .2s,transform .1s}
+.apply{display:inline-flex;align-items:center;gap:7px;font-size:15px;font-weight:600;text-decoration:none;color:var(--on-accent);background:var(--accent);padding:11px 22px;border-radius:var(--radius);transition:background .2s,transform .1s}
 .apply:hover{background:var(--accent-deep)}
 .apply:active{transform:translateY(1px)}
 
@@ -167,4 +169,4 @@ ul.jobs{list-style:none}
 .more:disabled{opacity:.6;cursor:wait}
 
 footer.site{padding:40px 0 56px;border-top:1px solid var(--rule);color:var(--muted);font-size:14px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
-footer.site a{color:var(--ink)}
+footer.site a{display:inline-flex;align-items:center;gap:6px;color:var(--ink)}
