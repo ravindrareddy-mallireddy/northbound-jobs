@@ -36,17 +36,9 @@ def list_jobs(
 
 @app.get("/api/jobs/{job_id}")
 def get_job(job_id: int):
-    con = db.connect()
-    row = con.execute(
-        "SELECT id, source, title, co, place, work, type, dept, sal, desc, tags, url FROM jobs WHERE id=? AND active=1",
-        (job_id,),
-    ).fetchone()
-    con.close()
-    if row is None:
+    job = db.get_job(job_id)
+    if job is None:
         raise HTTPException(status_code=404, detail="No such job")
-    job = dict(row)
-    import json
-    job["tags"] = json.loads(job["tags"])
     return job
 
 
