@@ -113,7 +113,8 @@ def expire_missing(source: str, live_ids: list[str]):
     con.close()
 
 
-def query(q: str, job_type: str, place: str, dept: str):
+def query(q: str, job_type: str, place: str, dept: str, page: int = 1, per_page: int = 50):
+    """Return (total matching, one page of listings) ordered newest first."""
     con = connect()
     clauses, params = ["active=1"], []
     if job_type:
@@ -131,10 +132,12 @@ def query(q: str, job_type: str, place: str, dept: str):
             clauses.append("(lower(title) LIKE ? OR lower(co) LIKE ? OR lower(place) LIKE ? OR lower(tags) LIKE ?)")
             like = f"%{w}%"
             params.extend([like, like, like, like])
+    where = " WHERE " + " AND ".join(clauses)
+    total = con.execute("SELECT COUNT(*) FROM jobs" + where, params).fetchone()[0]
     rows = con.execute(
         "SELECT id, source, title, co, place, work, type, dept, sal, desc, tags, url"
-        " FROM jobs WHERE " + " AND ".join(clauses) + " ORDER BY last_seen DESC LIMIT 2000",
-        params,
+        " FROM jobs" + where + " ORDER BY last_seen DESC LIMIT ? OFFSET ?",
+        params + [per_page, (page - 1) * per_page],
     ).fetchall()
     con.close()
     jobs = []
@@ -142,4 +145,4 @@ def query(q: str, job_type: str, place: str, dept: str):
         j = dict(r)
         j["tags"] = json.loads(j["tags"])
         jobs.append(j)
-    return jobs
+    return total, jobs
