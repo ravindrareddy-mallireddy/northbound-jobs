@@ -9,6 +9,8 @@ export type Job = {
   dept: "Design" | "Engineering" | "Product";
   sal: string;
   desc: string;
+  country?: string;
+  level?: string;
   tags: string[];
   url?: string;
 };
@@ -18,4 +20,15 @@ export type JobsResponse = {
   page: number;
   per_page: number;
   jobs: Job[];
+};
+
+export type OptionCount = { value: string; count: number };
+
+export type FiltersMeta = {
+  works: OptionCount[];
+  types: OptionCount[];
+  depts: OptionCount[];
+  levels: OptionCount[];
+  countries: OptionCount[];
+  salary_count: number;
 };
