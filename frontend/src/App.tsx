@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { fetchJobs, type Job } from "./api";
 
 type Filters = { q: string; type: string; place: string; dept: string };
@@ -13,6 +13,57 @@ const DEPTS = ["", "Design", "Engineering", "Product"];
 function labelOf(value: string, all: string) {
   return value || all;
 }
+
+const JobRow = memo(function JobRow({
+  job,
+  open,
+  onToggle,
+}: {
+  job: Job;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <li className={open ? "job open" : "job"}>
+      <button
+        className="job-head"
+        aria-expanded={open}
+        onClick={onToggle}
+      >
+        <span className="job-title">{job.title}</span>
+        <span className="job-sal">{job.sal}</span>
+        <span className="job-sub">
+          <span className="co">{job.co}</span> · {job.place} · {job.type}
+        </span>
+        <span className="job-flags">{job.work}</span>
+      </button>
+      {open && (
+        <div className="job-detail">
+          <p>{job.desc}</p>
+          <div className="tags">
+            {job.tags.map((t) => (
+              <span key={t} className="tag">{t}</span>
+            ))}
+          </div>
+          {job.url ? (
+            <a className="apply" href={job.url} target="_blank" rel="noreferrer">
+              View the listing
+            </a>
+          ) : (
+            <a
+              className="apply"
+              href={`mailto:jobs@${job.co.toLowerCase().replace(/[^a-z]/g, "")}.example?subject=${encodeURIComponent(
+                job.title + " at " + job.co
+              )}`}
+            >
+              Apply to {job.co}
+            </a>
+          )}
+        </div>
+      )}
+    </li>
+  );
+});
 
 export default function App() {
   const [filters, setFilters] = useState<Filters>(EMPTY);
@@ -168,51 +219,19 @@ export default function App() {
           </div>
 
           {error && (
-            <p className="error">
+            <p className="error" role="alert">
               {error}. Start the FastAPI backend on port 8734 and reload.
             </p>
           )}
 
           <ul className="jobs">
             {jobs.map((job, i) => (
-              <li key={job.id ?? `${job.source}:${job.title}:${job.co}`} className={openIndex === i ? "job open" : "job"}>
-                <button
-                  className="job-head"
-                  aria-expanded={openIndex === i}
-                  onClick={() => setOpenIndex(openIndex === i ? null : i)}
-                >
-                  <span className="job-title">{job.title}</span>
-                  <span className="job-sal">{job.sal}</span>
-                  <span className="job-sub">
-                    <span className="co">{job.co}</span> · {job.place} · {job.type}
-                  </span>
-                  <span className="job-flags">{job.work}</span>
-                </button>
-                {openIndex === i && (
-                  <div className="job-detail">
-                    <p>{job.desc}</p>
-                    <div className="tags">
-                      {job.tags.map((t) => (
-                        <span key={t} className="tag">{t}</span>
-                      ))}
-                    </div>
-                    {job.url ? (
-                      <a className="apply" href={job.url} target="_blank" rel="noreferrer">
-                        View the listing
-                      </a>
-                    ) : (
-                      <a
-                        className="apply"
-                        href={`mailto:jobs@${job.co.toLowerCase().replace(/[^a-z]/g, "")}.example?subject=${encodeURIComponent(
-                          job.title + " at " + job.co
-                        )}`}
-                      >
-                        Apply to {job.co}
-                      </a>
-                    )}
-                  </div>
-                )}
-              </li>
+              <JobRow
+                key={job.id ?? `${job.source}:${job.title}:${job.co}`}
+                job={job}
+                open={openIndex === i}
+                onToggle={() => setOpenIndex(openIndex === i ? null : i)}
+              />
             ))}
           </ul>
 
