@@ -27,9 +27,11 @@ def list_jobs(
     type: str = Query(default="", pattern="^(|Full-time|Contract|Part-time)$"),
     place: str = Query(default="", pattern="^(|Remote|On-site)$"),
     dept: str = Query(default="", pattern="^(|Design|Engineering|Product)$"),
+    page: int = Query(default=1, ge=1),
+    per_page: int = Query(default=50, ge=10, le=200),
 ):
-    jobs = db.query(q, type, place, dept)
-    return {"count": len(jobs), "jobs": jobs}
+    total, jobs = db.query(q, type, place, dept, page, per_page)
+    return {"count": total, "page": page, "per_page": per_page, "jobs": jobs}
 
 
 @app.get("/api/jobs/{job_id}")

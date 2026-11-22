@@ -13,4 +13,9 @@ export type Job = {
   url?: string;
 };
 
-export type JobsResponse = { count: number; jobs: Job[] };
+export type JobsResponse = {
+  count: number;
+  page: number;
+  per_page: number;
+  jobs: Job[];
+};

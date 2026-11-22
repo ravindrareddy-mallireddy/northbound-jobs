@@ -4,16 +4,19 @@ export type { Job, JobsResponse };
 
 export type Filters = { q: string; type: string; place: string; dept: string };
 
-export async function fetchJobs(filters: Filters): Promise<JobsResponse> {
+export async function fetchJobs(
+  filters: Filters,
+  page: number,
+  perPage = 50
+): Promise<JobsResponse> {
   const url = new URL("/api/jobs", window.location.origin);
-  for (const [k, v] of Object.entries(filters)) {
-    if (v) url.searchParams.set(k, v);
-  }
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-    return res.json();
-  } catch {
-    return { count: 0, jobs: [] };
-  }
+  if (filters.q) url.searchParams.set("q", filters.q);
+  if (filters.type) url.searchParams.set("type", filters.type);
+  if (filters.place) url.searchParams.set("place", filters.place);
+  if (filters.dept) url.searchParams.set("dept", filters.dept);
+  url.searchParams.set("page", String(page));
+  url.searchParams.set("per_page", String(perPage));
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+  return res.json();
 }
