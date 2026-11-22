@@ -1,11 +1,26 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, ChevronDown, Mail, Monitor, Moon, Search, Sun } from "lucide-react";
-import { fetchJobs, type Job } from "./api";
+import { fetchFilters, fetchJobs, type Filters, type FiltersMeta, type Job } from "./api";
 
-type Filters = { q: string; type: string; place: string; dept: string };
 type Theme = "auto" | "light" | "dark";
 
 const THEMES: Theme[] = ["auto", "light", "dark"];
+const PAGE_SIZES = [10, 25, 50, 100];
+
+const EMPTY: Filters = {
+  q: "",
+  type: "",
+  work: "",
+  dept: "",
+  country: "",
+  level: "",
+  salaryOnly: false,
+};
+
+const TYPES = ["", "Full-time", "Contract", "Part-time"];
+const WORKS = ["", "Remote", "Hybrid", "On-site"];
+const DEPTS = ["", "Design", "Engineering", "Product"];
+const LEVELS = ["", "Junior", "Mid", "Senior", "Lead"];
 
 function themeLabel(theme: Theme) {
   return theme === "auto" ? "Auto" : theme === "light" ? "Light" : "Dark";
@@ -28,12 +43,6 @@ function applyTheme(theme: Theme) {
   }
 }
 
-const EMPTY: Filters = { q: "", type: "", place: "", dept: "" };
-
-const TYPES = ["", "Full-time", "Contract"];
-const PLACES = ["", "Remote", "On-site"];
-const DEPTS = ["", "Design", "Engineering", "Product"];
-
 function labelOf(value: string, all: string) {
   return value || all;
 }
@@ -47,19 +56,17 @@ const JobRow = memo(function JobRow({
   open: boolean;
   onToggle: () => void;
 }) {
+  const meta = [job.co, job.place, job.work, job.type].filter(Boolean).join(" · ");
   return (
     <li className={open ? "job open" : "job"}>
-      <button
-        className="job-head"
-        aria-expanded={open}
-        onClick={onToggle}
-      >
+      <button className="job-head" aria-expanded={open} onClick={onToggle}>
         <span className="job-title">{job.title}</span>
         <span className="job-sal">{job.sal}</span>
-        <span className="job-sub">
-          <span className="co">{job.co}</span> · {job.place} · {job.type}
+        <span className="job-sub">{meta}</span>
+        <span className="job-flags">
+          {job.level && <span className="flag">{job.level}</span>}
+          {job.country && <span className="flag">{job.country}</span>}
         </span>
-        <span className="job-flags">{job.work}</span>
         <ChevronDown className="job-chev" size={18} strokeWidth={1.8} aria-hidden="true" />
       </button>
       {open && (
@@ -94,6 +101,8 @@ const JobRow = memo(function JobRow({
 
 export default function App() {
   const [filters, setFilters] = useState<Filters>(EMPTY);
+  const [meta, setMeta] = useState<FiltersMeta | null>(null);
+  const [perPage, setPerPage] = useState(25);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [count, setCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -109,9 +118,13 @@ export default function App() {
   }, [theme]);
 
   useEffect(() => {
+    fetchFilters().then(setMeta).catch(() => setMeta(null));
+  }, []);
+
+  useEffect(() => {
     let alive = true;
     const timer = setTimeout(() => {
-      fetchJobs(filters, 1)
+      fetchJobs(filters, 1, perPage)
         .then((res) => {
           if (!alive) return;
           setJobs(res.jobs);
@@ -127,15 +140,18 @@ export default function App() {
       alive = false;
       clearTimeout(timer);
     };
-  }, [filters]);
+  }, [filters, perPage]);
 
   const loadMore = useCallback(async () => {
     setLoadingMore(true);
     try {
-      const res = await fetchJobs(filters, Math.floor(jobs.length / 50) + 1);
+      const res = await fetchJobs(filters, Math.floor(jobs.length / perPage) + 1, perPage);
       setJobs((prev) => {
-        const seen = new Set(prev.map((j) => `${j.source}:${j.title}:${j.co}`));
-        return [...prev, ...res.jobs.filter((j) => !seen.has(`${j.source}:${j.title}:${j.co}`))];
+        const seen = new Set(prev.map((j) => j.id ?? `${j.source}:${j.title}:${j.co}`));
+        return [
+          ...prev,
+          ...res.jobs.filter((j) => !seen.has(j.id ?? `${j.source}:${j.title}:${j.co}`)),
+        ];
       });
       setCount(res.count);
     } catch (e: unknown) {
@@ -143,7 +159,7 @@ export default function App() {
     } finally {
       setLoadingMore(false);
     }
-  }, [filters, jobs.length]);
+  }, [filters, jobs.length, perPage]);
 
   const set = useCallback((patch: Partial<Filters>) => {
     setFilters((f) => ({ ...f, ...patch }));
@@ -151,12 +167,18 @@ export default function App() {
   }, []);
 
   const companies = useMemo(
-    () => [...new Set(jobs.map((j) => j.co))].join(", "),
+    () => [...new Set(jobs.map((j) => j.co))].slice(0, 8).join(", "),
     [jobs]
   );
 
   const active =
-    filters.q !== "" || filters.type !== "" || filters.place !== "" || filters.dept !== "";
+    filters.q !== "" ||
+    filters.type !== "" ||
+    filters.work !== "" ||
+    filters.dept !== "" ||
+    filters.country !== "" ||
+    filters.level !== "" ||
+    filters.salaryOnly;
 
   return (
     <>
@@ -218,31 +240,55 @@ export default function App() {
 
         <div className="wrap" id="jobs">
           <div className="filters" role="group" aria-label="Filters">
-            <span className="label">Type</span>
-            {TYPES.map((t) => (
+            <span className="label">Work</span>
+            {WORKS.map((w) => (
               <button
-                key={t || "all-type"}
+                key={w || "all-work"}
                 className="chip"
-                aria-pressed={filters.type === t}
-                onClick={() => set({ type: t })}
+                aria-pressed={filters.work === w}
+                onClick={() => set({ work: w })}
               >
-                {labelOf(t, "All")}
+                {labelOf(w, "Any mode")}
               </button>
             ))}
-            <span className="label" style={{ marginLeft: 14 }}>Place</span>
-            {PLACES.map((p) => (
-              <button
-                key={p || "all-place"}
-                className="chip"
-                aria-pressed={filters.place === p}
-                onClick={() => set({ place: p })}
-              >
-                {labelOf(p, "Anywhere")}
-              </button>
-            ))}
+
+            <label className="skip" htmlFor="country">Country</label>
+            <select
+              id="country"
+              className="filter-select"
+              value={filters.country}
+              onChange={(e) => set({ country: e.target.value })}
+            >
+              <option value="">Any country</option>
+              {(meta?.countries ?? []).map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.value} ({c.count})
+                </option>
+              ))}
+            </select>
+
+            <label className="skip" htmlFor="level">Experience</label>
+            <select
+              id="level"
+              className="filter-select"
+              value={filters.level}
+              onChange={(e) => set({ level: e.target.value })}
+            >
+              <option value="">Any experience</option>
+              {LEVELS.filter(Boolean).map((l) => {
+                const found = meta?.levels.find((m) => m.value === l);
+                return (
+                  <option key={l} value={l}>
+                    {l} ({found ? found.count : 0})
+                  </option>
+                );
+              })}
+            </select>
+
             <label className="skip" htmlFor="dept">Department</label>
             <select
               id="dept"
+              className="filter-select"
               value={filters.dept}
               onChange={(e) => set({ dept: e.target.value })}
             >
@@ -252,17 +298,52 @@ export default function App() {
                 </option>
               ))}
             </select>
+
+            <span className="label">Type</span>
+            {TYPES.filter((t) => !t || meta?.types.some((m) => m.value === t)).map((t) => (
+              <button
+                key={t || "all-type"}
+                className="chip"
+                aria-pressed={filters.type === t}
+                onClick={() => set({ type: t })}
+              >
+                {labelOf(t, "All")}
+              </button>
+            ))}
+
+            <label className="check">
+              <input
+                type="checkbox"
+                checked={filters.salaryOnly}
+                onChange={(e) => set({ salaryOnly: e.target.checked })}
+              />
+              Salary listed
+              {meta && <span className="check-count">{meta.salary_count}</span>}
+            </label>
           </div>
 
           <div className="meta-row">
             <p className="count" aria-live="polite">
               <strong>{count} role{count === 1 ? "" : "s"}</strong> open
             </p>
-            {active && (
-              <button className="clear" type="button" onClick={() => set(EMPTY)}>
-                Clear filters
-              </button>
-            )}
+            <div className="meta-right">
+              {active && (
+                <button className="clear" type="button" onClick={() => set(EMPTY)}>
+                  Clear filters
+                </button>
+              )}
+              <label className="perpage">
+                Per page
+                <select
+                  value={perPage}
+                  onChange={(e) => setPerPage(Number(e.target.value))}
+                >
+                  {PAGE_SIZES.map((n) => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
           </div>
 
           {error && (
