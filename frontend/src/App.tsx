@@ -2,6 +2,9 @@ import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { fetchJobs, type Job } from "./api";
 
 type Filters = { q: string; type: string; place: string; dept: string };
+type Theme = "auto" | "light" | "dark";
+
+const THEMES: Theme[] = ["auto", "light", "dark"];
 
 const EMPTY: Filters = { q: "", type: "", place: "", dept: "" };
 const PAGE_SIZE = 50;
@@ -12,6 +15,20 @@ const DEPTS = ["", "Design", "Engineering", "Product"];
 
 function labelOf(value: string, all: string) {
   return value || all;
+}
+
+function themeLabel(theme: Theme) {
+  return theme === "auto" ? "Auto" : theme === "light" ? "Light" : "Dark";
+}
+
+function applyTheme(theme: Theme) {
+  if (theme === "auto") {
+    localStorage.removeItem("nb-theme");
+    document.documentElement.removeAttribute("data-theme");
+  } else {
+    localStorage.setItem("nb-theme", theme);
+    document.documentElement.setAttribute("data-theme", theme);
+  }
 }
 
 const JobRow = memo(function JobRow({
@@ -72,6 +89,14 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [theme, setTheme] = useState<Theme>(() => {
+    const saved = localStorage.getItem("nb-theme");
+    return THEMES.includes(saved as Theme) ? (saved as Theme) : "auto";
+  });
+
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
 
   useEffect(() => {
     let alive = true;
@@ -138,6 +163,14 @@ export default function App() {
             <a href="#about">About</a>
             <a className="post" href="mailto:post@northbound.example">Post a role</a>
           </nav>
+          <button
+            className="theme"
+            type="button"
+            aria-label={`Theme: ${themeLabel(theme)}. Switch theme.`}
+            onClick={() => setTheme(THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length])}
+          >
+            {themeLabel(theme)}
+          </button>
         </div>
       </header>
 
