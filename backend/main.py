@@ -25,13 +25,22 @@ app.add_middleware(
 def list_jobs(
     q: str = Query(default="", description="Free-text search over title, company, place and tags"),
     type: str = Query(default="", pattern="^(|Full-time|Contract|Part-time)$"),
-    place: str = Query(default="", pattern="^(|Remote|On-site)$"),
+    work: str = Query(default="", pattern="^(|Remote|Hybrid|On-site)$"),
     dept: str = Query(default="", pattern="^(|Design|Engineering|Product)$"),
+    country: str = Query(default="", max_length=60),
+    level: str = Query(default="", pattern="^(|Junior|Mid|Senior|Lead)$"),
+    salary_only: bool = Query(default=False),
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=50, ge=10, le=200),
 ):
-    total, jobs = db.query(q, type, place, dept, page, per_page)
+    total, jobs = db.query(q, type, work, dept, country, level, salary_only, page, per_page)
     return {"count": total, "page": page, "per_page": per_page, "jobs": jobs}
+
+
+@app.get("/api/filters")
+def filters():
+    """Filter options with counts, so the UI shows only values that exist."""
+    return db.filters_meta()
 
 
 @app.get("/api/jobs/{job_id}")
