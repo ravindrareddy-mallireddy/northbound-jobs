@@ -133,7 +133,7 @@ def query(q: str, job_type: str, place: str, dept: str):
             params.extend([like, like, like, like])
     rows = con.execute(
         "SELECT id, source, title, co, place, work, type, dept, sal, desc, tags, url"
-        " FROM jobs WHERE " + " AND ".join(clauses) + " ORDER BY last_seen DESC LIMIT 500",
+        " FROM jobs WHERE " + " AND ".join(clauses) + " ORDER BY last_seen DESC LIMIT 2000",
         params,
     ).fetchall()
     con.close()
