@@ -4,6 +4,7 @@ import { fetchJobs, type Job } from "./api";
 type Filters = { q: string; type: string; place: string; dept: string };
 
 const EMPTY: Filters = { q: "", type: "", place: "", dept: "" };
+const PAGE_SIZE = 50;
 
 const TYPES = ["", "Full-time", "Contract"];
 const PLACES = ["", "Remote", "On-site"];
@@ -19,10 +20,11 @@ export default function App() {
   const [count, setCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     let alive = true;
-    fetchJobs(filters)
+    fetchJobs(filters, 1)
       .then((res) => {
         if (!alive) return;
         setJobs(res.jobs);
@@ -37,6 +39,22 @@ export default function App() {
       alive = false;
     };
   }, [filters]);
+
+  const loadMore = useCallback(async () => {
+    setLoadingMore(true);
+    try {
+      const res = await fetchJobs(filters, Math.floor(jobs.length / PAGE_SIZE) + 1);
+      setJobs((prev) => {
+        const seen = new Set(prev.map((j) => `${j.source}:${j.title}:${j.co}`));
+        return [...prev, ...res.jobs.filter((j) => !seen.has(`${j.source}:${j.title}:${j.co}`))];
+      });
+      setCount(res.count);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Could not reach the jobs API");
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [filters, jobs.length]);
 
   const set = useCallback((patch: Partial<Filters>) => {
     setFilters((f) => ({ ...f, ...patch }));
@@ -199,6 +217,14 @@ export default function App() {
             <div className="empty">
               <strong>Nothing matches yet.</strong>
               Try a broader search, or clear the filters to see all roles.
+            </div>
+          )}
+
+          {!error && jobs.length < count && (
+            <div className="more-row">
+              <button className="more" type="button" onClick={loadMore} disabled={loadingMore}>
+                {loadingMore ? "Loading" : `Show more (${jobs.length} of ${count})`}
+              </button>
             </div>
           )}
         </div>

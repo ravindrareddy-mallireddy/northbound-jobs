@@ -81,6 +81,12 @@ ul.jobs{list-style:none}
 .apply:hover{background:var(--accent-deep)}
 .apply:active{transform:translateY(1px)}
 
+.more-row{display:flex;justify-content:center;padding:32px 0}
+.more{font:inherit;font-size:15px;font-weight:600;color:#F2F4EC;background:var(--accent);border:none;padding:12px 24px;border-radius:var(--radius);cursor:pointer;transition:background .2s,transform .1s}
+.more:hover:not(:disabled){background:var(--accent-deep)}
+.more:active{transform:translateY(1px)}
+.more:disabled{opacity:.6;cursor:wait}
+
 .empty{padding:64px 0;color:var(--muted)}
 .empty strong{display:block;font-family:var(--font-display);font-size:24px;font-weight:500;color:var(--ink);margin-bottom:8px}
 .error{padding:40px 0;color:var(--accent-deep)}
