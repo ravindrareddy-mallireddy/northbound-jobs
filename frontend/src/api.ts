@@ -1,8 +1,16 @@
-import type { Job, JobsResponse } from "./types";
+import type { Job, JobsResponse, FiltersMeta } from "./types";
 
-export type { Job, JobsResponse };
+export type { Job, JobsResponse, FiltersMeta };
 
-export type Filters = { q: string; type: string; place: string; dept: string };
+export type Filters = {
+  q: string;
+  type: string;
+  work: string;
+  dept: string;
+  country: string;
+  level: string;
+  salaryOnly: boolean;
+};
 
 export async function fetchJobs(
   filters: Filters,
@@ -12,11 +20,20 @@ export async function fetchJobs(
   const url = new URL("/api/jobs", window.location.origin);
   if (filters.q) url.searchParams.set("q", filters.q);
   if (filters.type) url.searchParams.set("type", filters.type);
-  if (filters.place) url.searchParams.set("place", filters.place);
+  if (filters.work) url.searchParams.set("work", filters.work);
   if (filters.dept) url.searchParams.set("dept", filters.dept);
+  if (filters.country) url.searchParams.set("country", filters.country);
+  if (filters.level) url.searchParams.set("level", filters.level);
+  if (filters.salaryOnly) url.searchParams.set("salary_only", "true");
   url.searchParams.set("page", String(page));
   url.searchParams.set("per_page", String(perPage));
   const res = await fetch(url);
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchFilters(): Promise<FiltersMeta> {
+  const res = await fetch(new URL("/api/filters", window.location.origin));
   if (!res.ok) throw new Error(`Request failed: ${res.status}`);
   return res.json();
 }
