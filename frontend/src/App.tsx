@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { ArrowUpRight, ChevronDown, Mail, Monitor, Moon, Search, Sun } from "lucide-react";
 import { fetchJobs, type Job } from "./api";
 
 type Filters = { q: string; type: string; place: string; dept: string };
@@ -6,19 +7,15 @@ type Theme = "auto" | "light" | "dark";
 
 const THEMES: Theme[] = ["auto", "light", "dark"];
 
-const EMPTY: Filters = { q: "", type: "", place: "", dept: "" };
-const PAGE_SIZE = 50;
-
-const TYPES = ["", "Full-time", "Contract"];
-const PLACES = ["", "Remote", "On-site"];
-const DEPTS = ["", "Design", "Engineering", "Product"];
-
-function labelOf(value: string, all: string) {
-  return value || all;
-}
-
 function themeLabel(theme: Theme) {
   return theme === "auto" ? "Auto" : theme === "light" ? "Light" : "Dark";
+}
+
+function ThemeIcon({ theme }: { theme: Theme }) {
+  const props = { size: 15, strokeWidth: 1.8, "aria-hidden": true } as const;
+  if (theme === "light") return <Sun {...props} />;
+  if (theme === "dark") return <Moon {...props} />;
+  return <Monitor {...props} />;
 }
 
 function applyTheme(theme: Theme) {
@@ -29,6 +26,16 @@ function applyTheme(theme: Theme) {
     localStorage.setItem("nb-theme", theme);
     document.documentElement.setAttribute("data-theme", theme);
   }
+}
+
+const EMPTY: Filters = { q: "", type: "", place: "", dept: "" };
+
+const TYPES = ["", "Full-time", "Contract"];
+const PLACES = ["", "Remote", "On-site"];
+const DEPTS = ["", "Design", "Engineering", "Product"];
+
+function labelOf(value: string, all: string) {
+  return value || all;
 }
 
 const JobRow = memo(function JobRow({
@@ -53,6 +60,7 @@ const JobRow = memo(function JobRow({
           <span className="co">{job.co}</span> · {job.place} · {job.type}
         </span>
         <span className="job-flags">{job.work}</span>
+        <ChevronDown className="job-chev" size={18} strokeWidth={1.8} aria-hidden="true" />
       </button>
       {open && (
         <div className="job-detail">
@@ -65,6 +73,7 @@ const JobRow = memo(function JobRow({
           {job.url ? (
             <a className="apply" href={job.url} target="_blank" rel="noreferrer">
               View the listing
+              <ArrowUpRight size={16} strokeWidth={2} aria-hidden="true" />
             </a>
           ) : (
             <a
@@ -74,6 +83,7 @@ const JobRow = memo(function JobRow({
               )}`}
             >
               Apply to {job.co}
+              <ArrowUpRight size={16} strokeWidth={2} aria-hidden="true" />
             </a>
           )}
         </div>
@@ -122,7 +132,7 @@ export default function App() {
   const loadMore = useCallback(async () => {
     setLoadingMore(true);
     try {
-      const res = await fetchJobs(filters, Math.floor(jobs.length / PAGE_SIZE) + 1);
+      const res = await fetchJobs(filters, Math.floor(jobs.length / 50) + 1);
       setJobs((prev) => {
         const seen = new Set(prev.map((j) => `${j.source}:${j.title}:${j.co}`));
         return [...prev, ...res.jobs.filter((j) => !seen.has(`${j.source}:${j.title}:${j.co}`))];
@@ -169,6 +179,7 @@ export default function App() {
             aria-label={`Theme: ${themeLabel(theme)}. Switch theme.`}
             onClick={() => setTheme(THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length])}
           >
+            <ThemeIcon theme={theme} />
             {themeLabel(theme)}
           </button>
         </div>
@@ -197,7 +208,10 @@ export default function App() {
                 value={filters.q}
                 onChange={(e) => set({ q: e.target.value })}
               />
-              <button type="submit">Search</button>
+              <button type="submit">
+                <Search size={17} strokeWidth={2} aria-hidden="true" />
+                Search
+              </button>
             </form>
           </div>
         </section>
@@ -300,7 +314,12 @@ export default function App() {
 
       <footer className="site wrap">
         <p>Listings from Remotive, Arbeitnow and Jobicy.</p>
-        <p><a href="mailto:hello@northbound.example">hello@northbound.example</a></p>
+        <p>
+          <a href="mailto:hello@northbound.example">
+            <Mail size={15} strokeWidth={1.8} aria-hidden="true" />
+            hello@northbound.example
+          </a>
+        </p>
       </footer>
     </>
   );
