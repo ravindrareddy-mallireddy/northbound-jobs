@@ -320,6 +320,19 @@ export default function App() {
               Salary listed
               {meta && <span className="check-count">{meta.salary_count}</span>}
             </label>
+
+            <label className="perpage" htmlFor="perpage">
+              Jobs per page
+              <select
+                id="perpage"
+                value={perPage}
+                onChange={(e) => setPerPage(Number(e.target.value))}
+              >
+                {PAGE_SIZES.map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </label>
           </div>
 
           <div className="meta-row">
@@ -332,17 +345,6 @@ export default function App() {
                   Clear filters
                 </button>
               )}
-              <label className="perpage">
-                Per page
-                <select
-                  value={perPage}
-                  onChange={(e) => setPerPage(Number(e.target.value))}
-                >
-                  {PAGE_SIZES.map((n) => (
-                    <option key={n} value={n}>{n}</option>
-                  ))}
-                </select>
-              </label>
             </div>
           </div>
 
