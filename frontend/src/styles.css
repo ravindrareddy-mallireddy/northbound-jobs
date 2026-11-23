@@ -111,8 +111,9 @@ header.site{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--
 .meta-row .count{font-size:15px;color:var(--muted)}
 .meta-row .count strong{color:var(--ink);font-weight:600}
 .meta-right{display:flex;align-items:center;gap:16px}
-.perpage{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
-.perpage select{font:inherit;font-size:14px;padding:6px 10px;border-radius:var(--radius);border:1px solid var(--rule);background:var(--paper);color:var(--ink);cursor:pointer}
+.perpage{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);margin-left:auto}
+.perpage select{font:inherit;font-size:14px;padding:7px 10px;border-radius:var(--radius);border:1px solid var(--rule);background:var(--paper);color:var(--ink);cursor:pointer}
+@media(max-width:720px){.perpage{margin-left:0}}
 .clear{font:inherit;font-size:14px;color:var(--accent);background:none;border:none;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .clear:hover{color:var(--accent-deep)}
 
